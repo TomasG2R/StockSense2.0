@@ -2,6 +2,8 @@ namespace StockSense.Core.Models;
 
 public class StockPrice
 {
-    // TODO: Add fields/properties for price points (e.g., open/high/low/close, volume, timestamp) and validation rules.
+    // TODO: Add OHLCV + timestamp fields/properties.
+    // TODO: Implement IComparable<StockPrice> (compare by time).
+    // TODO: Add Deconstruct(out DateTimeOffset time, out decimal close).
 }
 

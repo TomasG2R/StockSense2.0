@@ -2,6 +2,11 @@ namespace StockSense.Core.Models;
 
 public sealed class StockSymbol
 {
-    // TODO: Represent a stock ticker symbol (immutability, normalization, and basic validation).
+    // TODO: Implement as a strong type for ticker symbols:
+    // - store normalized Value
+    // - TryParse(string?, out StockSymbol)
+    // - IComparable<StockSymbol>, IEquatable<StockSymbol>, IFormattable
+    // - static constructor for validation rules
+    // - operator overloads (==, !=)
 }
 

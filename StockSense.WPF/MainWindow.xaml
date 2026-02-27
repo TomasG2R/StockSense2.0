@@ -1,12 +1,18 @@
-﻿<Window x:Class="StockSense.WPF.MainWindow"
+<Window x:Class="StockSense.WPF.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:StockSense.WPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="StockSense" Height="600" Width="1000">
     <Grid>
-
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="520">
+            <TextBlock Text="StockSense" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center" />
+            <TextBlock Margin="0,10,0,0" TextAlignment="Center" Opacity="0.8"
+                       Text="Skeleton mode: start implementing step-by-step (data fetch, indicators, signals, alerts, UI)." />
+            <TextBlock Margin="0,10,0,0" TextAlignment="Center" Opacity="0.7" FontSize="12"
+                       Text="Next step suggestion: create a MainViewModel and bind a Symbol textbox + Load button." />
+        </StackPanel>
     </Grid>
 </Window>
