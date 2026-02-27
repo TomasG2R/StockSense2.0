@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="StockSense.Core/StockSense.Core.csproj" />
+  <Project Path="StockSense.WPF/StockSense.WPF.csproj" />
+</Solution>
