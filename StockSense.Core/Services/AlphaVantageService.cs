@@ -31,7 +31,7 @@ using System.Text.Json;
       {
           await _rateLimiter.WaitForSlotAsync(ct);
 
-          string url = BuildUrl(symbol);
+          string url = BuildUrl(symbol, "compact");
           string json = await _http.GetStringAsync(url, ct);
 
           // out argument: TryParse writes the list into prices if parsing succeeds
@@ -50,13 +50,12 @@ using System.Text.Json;
 
       // ── Private helpers ───────────────────────────────────────────────────────
 
-      private string BuildUrl(StockSymbol symbol)
+      private string BuildUrl(StockSymbol symbol, string outputsize = "compact")
       {
           string apiKey  = _options.GetApiKey();
           string baseUrl = _options.GetBaseUrl();
 
-          // ?[] operator: safe index — if query string were an array, ?[] guards null access
-          return $"{baseUrl}?function=TIME_SERIES_DAILY&symbol={symbol}&outputsize=compact&apikey={apiKey}";
+          return $"{baseUrl}?function=TIME_SERIES_DAILY&symbol={symbol}&outputsize={outputsize}&apikey={apiKey}";
       }
 
       /// <summary>
