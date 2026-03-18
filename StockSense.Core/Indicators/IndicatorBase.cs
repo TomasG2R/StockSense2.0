@@ -1,19 +1,34 @@
-using StockSense.Core.Interfaces;
+  using StockSense.Core.Interfaces;
+  using StockSense.Core.Models;
 
-namespace StockSense.Core.Indicators;
+  namespace StockSense.Core.Indicators;
 
-public abstract class IndicatorBase : IIndicator
-{
-    static IndicatorBase()
-    {
-        // TODO: Add static initialization used by all indicators (if needed).
-    }
+  /// <summary>
+  /// Shared base for all technical indicators. Cannot be instantiated directly.
+  /// </summary>
+  public abstract class IndicatorBase : IIndicator
+  {
+      /// <inheritdoc/>
+      public abstract string Name { get; }
 
-    // TODO: Add common properties (Name, Period) and shared logic.
+      /// <inheritdoc/>
+      public abstract int Period { get; }
 
-    protected void ValidateInput()
-    {
-        // TODO: Validate input price history (null/length/range).
-    }
-}
+      /// <inheritdoc/>
+      public abstract IReadOnlyList<decimal> Calculate(IReadOnlyList<StockPrice> prices);
 
+      /// <inheritdoc/>
+      public abstract bool TryGetSignal(IReadOnlyList<StockPrice> prices, out SignalType signal);
+
+      /// <summary>
+      /// Throws if the price list is null or has fewer entries than the required period.
+      /// Call this at the top of every Calculate/TryGetSignal implementation.
+      /// </summary>
+      protected void ValidateInput(IReadOnlyList<StockPrice> prices, int requiredLength)
+      {
+          ArgumentNullException.ThrowIfNull(prices);
+          if (prices.Count < requiredLength)
+              throw new ArgumentException(
+                  $"{Name} needs at least {requiredLength} data points, got {prices.Count}.");
+      }
+  }
