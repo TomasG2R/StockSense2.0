@@ -40,6 +40,7 @@ public sealed class RateLimiter
                 // Slot available — record this request and return
                 _minuteWindow.Enqueue(now);
                 _dayWindow.Enqueue(now);
+                await Task.Delay(TimeSpan.FromSeconds(1.2), ct);
                 return;
             }
 

@@ -22,6 +22,7 @@ public static class ConsoleRenderer
         System.Console.WriteLine("║  2. Analyze watchlist        ║");
         System.Console.WriteLine("║  3. View alert history       ║");
         System.Console.WriteLine("║  4. View price history       ║");
+        System.Console.WriteLine("║  5. Weekly analysis          ║");
         System.Console.WriteLine("║  0. Exit                     ║");
         System.Console.WriteLine("╚══════════════════════════════╝");
         System.Console.Write("\nChoice: ");
@@ -48,9 +49,10 @@ public static class ConsoleRenderer
     // ── Analysis results ─────────────────────────────────────────────────────
 
     /// <summary>Prints a header row before analysis results.</summary>
-    public static void ShowAnalysisHeader()
+    public static void ShowAnalysisHeader(string timeframe = "Daily")
     {
         System.Console.WriteLine();
+        System.Console.WriteLine($"── {timeframe} Analysis ──────────────────────────────────────────");
         System.Console.WriteLine($"{"Symbol",-8} {"Last Close",-12} {"SMA-20",-10} {"RSI-14",-10} {"MACD",-10} {"Signal",-12}");
         System.Console.WriteLine(new string('─', 64));
     }

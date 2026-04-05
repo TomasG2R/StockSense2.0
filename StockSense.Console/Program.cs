@@ -1,10 +1,10 @@
 using System.Text.Json;
 using StockSense.Core.Alerts;
+using StockSense.Core.Indicators;
 using StockSense.Core.Interfaces;
 using StockSense.Core.Models;
 using StockSense.Core.Services;
 using StockSense.Console;
-
 
 // Load API key from appsettings.json
 string settingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
@@ -44,7 +44,7 @@ alertService.OnAlertTriggered += alert =>
     ConsoleRenderer.ShowSuccess($"ALERT: {alert}");
 };
 
-// ── Main menu loop 
+// ── Main menu loop ────────────────────────────────────────────────────────────
 
 bool running = true;
 while (running)
@@ -69,6 +69,10 @@ while (running)
             await ShowPriceHistoryAsync(provider, watchlist);
             break;
 
+        case 5:
+            await RunWeeklyAnalysisAsync(provider, signalEngine, watchlist, alertService);
+            break;
+
         case 0:
             running = false;
             break;
@@ -82,7 +86,7 @@ while (running)
 
 System.Console.WriteLine("\nGoodbye.");
 
-// ── Analysis
+// ── Daily analysis ────────────────────────────────────────────────────────────
 
 static async Task RunAnalysisAsync(
     IStockDataProvider provider,
@@ -97,7 +101,7 @@ static async Task RunAnalysisAsync(
         return;
     }
 
-    ConsoleRenderer.ShowAnalysisHeader();
+    ConsoleRenderer.ShowAnalysisHeader("Daily");
 
     foreach (StockSymbol symbol in watchlist.Symbols)
     {
@@ -105,8 +109,7 @@ static async Task RunAnalysisAsync(
         {
             System.Console.Write($"  Fetching {symbol.Value}...");
 
-            IReadOnlyList<StockPrice> prices =
-                await provider.GetDailyAsync(symbol);
+            IReadOnlyList<StockPrice> prices = await provider.GetDailyAsync(symbol);
 
             if (prices.Count == 0)
             {
@@ -114,31 +117,19 @@ static async Task RunAnalysisAsync(
                 continue;
             }
 
-            // Calculate indicators
-            var ma   = new StockSense.Core.Indicators.MovingAverageIndicator();
-            var rsi  = new StockSense.Core.Indicators.RsiIndicator();
-            var macd = new StockSense.Core.Indicators.MacdIndicator();
+            var ma   = new MovingAverageIndicator();
+            var rsi  = new RsiIndicator();
+            var macd = new MacdIndicator();
 
             decimal lastClose = prices[^1].Close;
-
-            decimal smaValue  = prices.Count >= ma.Period
-                ? ma.Calculate(prices)[^1]
-                : 0;
-
-            decimal rsiValue  = prices.Count >= rsi.Period + 1
-                ? rsi.Calculate(prices)[^1]
-                : 0;
-
-            decimal macdValue = prices.Count >= 35
-                ? macd.Calculate(prices)[^1]
-                : 0;
+            decimal smaValue  = prices.Count >= ma.Period  ? ma.Calculate(prices)[^1]   : 0;
+            decimal rsiValue  = prices.Count >= rsi.Period + 1 ? rsi.Calculate(prices)[^1] : 0;
+            decimal macdValue = prices.Count >= 35         ? macd.Calculate(prices)[^1] : 0;
 
             SignalType signal = await signalEngine.EvaluateAsync(symbol.Value, prices);
 
-            // Clear the "Fetching..." line and print the result row
             System.Console.Write("\r");
-            ConsoleRenderer.ShowAnalysisRow(
-                symbol.Value, lastClose, smaValue, rsiValue, macdValue, signal);
+            ConsoleRenderer.ShowAnalysisRow(symbol.Value, lastClose, smaValue, rsiValue, macdValue, signal);
         }
         catch (Exception ex)
         {
@@ -149,7 +140,61 @@ static async Task RunAnalysisAsync(
     ConsoleRenderer.Pause();
 }
 
-// ── Alert history 
+// ── Weekly analysis ───────────────────────────────────────────────────────────
+
+static async Task RunWeeklyAnalysisAsync(
+    IStockDataProvider provider,
+    SignalEngine signalEngine,
+    WatchlistManager watchlist,
+    AlertService alertService)
+{
+    if (watchlist.Symbols.Count == 0)
+    {
+        ConsoleRenderer.ShowError("Watchlist is empty. Add symbols first.");
+        ConsoleRenderer.Pause();
+        return;
+    }
+
+    ConsoleRenderer.ShowAnalysisHeader("Weekly");
+
+    foreach (StockSymbol symbol in watchlist.Symbols)
+    {
+        try
+        {
+            System.Console.Write($"  Fetching {symbol.Value}...");
+
+            IReadOnlyList<StockPrice> prices = await provider.GetWeeklyAsync(symbol);
+
+            if (prices.Count == 0)
+            {
+                ConsoleRenderer.ShowError($"No data returned for {symbol.Value}.");
+                continue;
+            }
+
+            var ma   = new MovingAverageIndicator();
+            var rsi  = new RsiIndicator();
+            var macd = new MacdIndicator();
+
+            decimal lastClose = prices[^1].Close;
+            decimal smaValue  = prices.Count >= ma.Period      ? ma.Calculate(prices)[^1]   : 0;
+            decimal rsiValue  = prices.Count >= rsi.Period + 1 ? rsi.Calculate(prices)[^1]  : 0;
+            decimal macdValue = prices.Count >= 35             ? macd.Calculate(prices)[^1] : 0;
+
+            SignalType signal = await signalEngine.EvaluateAsync(symbol.Value + "_W", prices);
+
+            System.Console.Write("\r");
+            ConsoleRenderer.ShowAnalysisRow(symbol.Value, lastClose, smaValue, rsiValue, macdValue, signal);
+        }
+        catch (Exception ex)
+        {
+            ConsoleRenderer.ShowError($"{symbol.Value}: {ex.Message}");
+        }
+    }
+
+    ConsoleRenderer.Pause();
+}
+
+// ── Alert history ─────────────────────────────────────────────────────────────
 
 static async Task ShowAlertHistoryAsync(AlertService alertService)
 {
@@ -158,7 +203,7 @@ static async Task ShowAlertHistoryAsync(AlertService alertService)
     ConsoleRenderer.Pause();
 }
 
-// ── Price history 
+// ── Price history ─────────────────────────────────────────────────────────────
 
 static async Task ShowPriceHistoryAsync(IStockDataProvider provider, WatchlistManager watchlist)
 {
@@ -169,7 +214,6 @@ static async Task ShowPriceHistoryAsync(IStockDataProvider provider, WatchlistMa
         return;
     }
 
-    // Pick symbol
     ConsoleRenderer.ShowWatchlist(watchlist.DisplaySymbols);
     System.Console.Write("Enter symbol to view (from watchlist): ");
     string? input = System.Console.ReadLine()?.Trim().ToUpperInvariant();
@@ -185,7 +229,6 @@ static async Task ShowPriceHistoryAsync(IStockDataProvider provider, WatchlistMa
     {
         System.Console.WriteLine("\n  Fetching data...");
 
-        // Free tier only supports compact (last ~100 trading days = ~4 months)
         IReadOnlyList<StockPrice> prices = await provider.GetDailyAsync(symbol!);
 
         if (prices.Count == 0)

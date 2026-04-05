@@ -9,5 +9,8 @@ public interface IStockDataProvider
         DateOnly? start = null,
         DateOnly? end = null,
         CancellationToken ct = default);
-}
 
+    Task<IReadOnlyList<StockPrice>> GetWeeklyAsync(
+        StockSymbol symbol,
+        CancellationToken ct = default);
+}

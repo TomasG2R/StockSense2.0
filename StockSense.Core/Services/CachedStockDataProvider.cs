@@ -11,8 +11,9 @@ public sealed class CachedStockDataProvider : IStockDataProvider
 {
     private readonly IStockDataProvider _inner;
 
-    // Dictionary keyed by symbol string → cached price list
-    private readonly Dictionary<string, IReadOnlyList<StockPrice>> _cache = new();
+    // Separate caches for daily and weekly data
+    private readonly Dictionary<string, IReadOnlyList<StockPrice>> _dailyCache  = new();
+    private readonly Dictionary<string, IReadOnlyList<StockPrice>> _weeklyCache = new();
 
     /// <summary>Creates the provider wrapping any IStockDataProvider implementation.</summary>
     public CachedStockDataProvider(IStockDataProvider inner)
@@ -30,7 +31,7 @@ public sealed class CachedStockDataProvider : IStockDataProvider
         string key = symbol.Value;
 
         // is operator + pattern matching: check type and bind in one step
-        if (_cache.TryGetValue(key, out IReadOnlyList<StockPrice>? cached)
+        if (_dailyCache.TryGetValue(key, out IReadOnlyList<StockPrice>? cached)
             && cached is List<StockPrice> { Count: > 0 } cachedList)
         {
             return ApplyDateFilter(cachedList, start, end);
@@ -40,17 +41,45 @@ public sealed class CachedStockDataProvider : IStockDataProvider
 
         // Pattern matching with is: confirm the result is usable before caching
         if (fresh is IReadOnlyList<StockPrice> { Count: > 0 })
-            _cache[key] = fresh;
+            _dailyCache[key] = fresh;
 
         return fresh;
     }
 
-    /// <summary>Removes a single symbol from the cache, forcing a fresh fetch next time.</summary>
-    public void Invalidate(StockSymbol symbol) =>
-        _cache.Remove(symbol.Value);
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<StockPrice>> GetWeeklyAsync(
+        StockSymbol symbol,
+        CancellationToken ct = default)
+    {
+        string key = symbol.Value;
 
-    /// <summary>Clears the entire cache.</summary>
-    public void InvalidateAll() => _cache.Clear();
+        if (_weeklyCache.TryGetValue(key, out IReadOnlyList<StockPrice>? cached)
+            && cached is List<StockPrice> { Count: > 0 } cachedList)
+        {
+            return cachedList;
+        }
+
+        IReadOnlyList<StockPrice> fresh = await _inner.GetWeeklyAsync(symbol, ct);
+
+        if (fresh is IReadOnlyList<StockPrice> { Count: > 0 })
+            _weeklyCache[key] = fresh;
+
+        return fresh;
+    }
+
+    /// <summary>Removes a single symbol from both caches, forcing a fresh fetch next time.</summary>
+    public void Invalidate(StockSymbol symbol)
+    {
+        _dailyCache.Remove(symbol.Value);
+        _weeklyCache.Remove(symbol.Value);
+    }
+
+    /// <summary>Clears both caches.</summary>
+    public void InvalidateAll()
+    {
+        _dailyCache.Clear();
+        _weeklyCache.Clear();
+    }
 
     // ── Private helpers ───────────────────────────────────────────────────────
 

@@ -5,7 +5,7 @@ using StockSense.Core.Models;
 namespace StockSense.Core.Services;
 
 /// <summary>
-/// Fetches daily stock price history from the Alpha Vantage API.
+/// Fetches daily and weekly stock price history from the Alpha Vantage API.
 /// </summary>
 public sealed class AlphaVantageService : IStockDataProvider
 {
@@ -31,11 +31,11 @@ public sealed class AlphaVantageService : IStockDataProvider
     {
         await _rateLimiter.WaitForSlotAsync(ct);
 
-        string url = BuildUrl(symbol, "compact");
+        string url = $"{_options.GetBaseUrl()}?function=TIME_SERIES_DAILY&symbol={symbol}&outputsize=compact&apikey={_options.GetApiKey()}";
         string json = await _http.GetStringAsync(url, ct);
 
         // out argument: TryParse writes the list into prices if parsing succeeds
-        if (!TryParseResponse(json, out List<StockPrice>? prices, out string? error))
+        if (!TryParseResponse(json, "Time Series (Daily)", out List<StockPrice>? prices, out string? error))
             throw new InvalidOperationException($"Failed to parse Alpha Vantage response: {error}");
 
         // ?. operator: only filter if start/end were provided
@@ -48,23 +48,33 @@ public sealed class AlphaVantageService : IStockDataProvider
         return result.OrderBy(p => p.Date).ToList();
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
-
-    private string BuildUrl(StockSymbol symbol, string outputsize = "compact")
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<StockPrice>> GetWeeklyAsync(
+        StockSymbol symbol,
+        CancellationToken ct = default)
     {
-        string apiKey  = _options.GetApiKey();
-        string baseUrl = _options.GetBaseUrl();
+        await _rateLimiter.WaitForSlotAsync(ct);
 
-        return $"{baseUrl}?function=TIME_SERIES_DAILY&symbol={symbol}&outputsize={outputsize}&apikey={apiKey}";
+        string url = $"{_options.GetBaseUrl()}?function=TIME_SERIES_WEEKLY&symbol={symbol}&apikey={_options.GetApiKey()}";
+        string json = await _http.GetStringAsync(url, ct);
+
+        if (!TryParseResponse(json, "Weekly Time Series", out List<StockPrice>? prices, out string? error))
+            throw new InvalidOperationException($"Failed to parse Alpha Vantage weekly response: {error}");
+
+        return prices!.OrderBy(p => p.Date).ToList();
     }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
 
     /// <summary>
     /// Tries to parse the raw JSON from Alpha Vantage.
     /// Uses two out parameters: the result list and an error message.
+    /// seriesKey is the JSON key that wraps the data (e.g. "Time Series (Daily)").
     /// Returns false (and sets error) if the JSON is invalid or missing expected keys.
     /// </summary>
     private static bool TryParseResponse(
         string json,
+        string seriesKey,
         out List<StockPrice>? prices,
         out string? error)
     {
@@ -76,15 +86,13 @@ public sealed class AlphaVantageService : IStockDataProvider
             using JsonDocument doc = JsonDocument.Parse(json);
             JsonElement root = doc.RootElement;
 
-            // Alpha Vantage wraps data under "Time Series (Daily)"
-            if (!root.TryGetProperty("Time Series (Daily)", out JsonElement timeSeries))
+            if (!root.TryGetProperty(seriesKey, out JsonElement timeSeries))
             {
-                // Check if the API returned an error message instead
                 error = root.TryGetProperty("Note", out JsonElement note)
                     ? note.GetString()
                     : root.TryGetProperty("Information", out JsonElement info)
                         ? info.GetString()
-                        : "Missing 'Time Series (Daily)' key in response.";
+                        : $"Missing '{seriesKey}' key in response.";
                 return false;
             }
 
@@ -92,7 +100,6 @@ public sealed class AlphaVantageService : IStockDataProvider
 
             foreach (JsonProperty day in timeSeries.EnumerateObject())
             {
-                // ?. operator: safe property access on the JSON element
                 JsonElement v = day.Value;
                 prices.Add(new StockPrice
                 {
