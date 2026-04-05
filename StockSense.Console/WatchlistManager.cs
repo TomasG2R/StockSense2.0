@@ -1,3 +1,4 @@
+using System.Text.Json;
 using StockSense.Core.Models;
 
 namespace StockSense.Console;
@@ -5,10 +6,16 @@ namespace StockSense.Console;
 /// <summary>
 /// Manages the user's watchlist of stock symbols.
 /// Handles adding, removing, and listing symbols.
+/// Persists the watchlist to a JSON file between sessions.
 /// </summary>
 public sealed class WatchlistManager
 {
     private readonly List<StockSymbol> _symbols = new();
+    private readonly string _filePath;
+    public WatchlistManager(string filePath = "watchlist.json")
+    {
+        _filePath = filePath;
+    }
 
     // Delegate: fired whenever the watchlist changes
     public delegate void WatchlistChangedHandler(IReadOnlyList<StockSymbol> current);
@@ -26,7 +33,7 @@ public sealed class WatchlistManager
     /// <summary>
     /// Prompts the user to add a symbol. Validates input via StockSymbol.TryParse.
     /// </summary>
-    public void AddSymbol()
+     public async Task AddSymbol()
     {
         System.Console.Write("\nEnter stock symbol (e.g. AAPL): ");
         string? input = System.Console.ReadLine();
@@ -47,13 +54,14 @@ public sealed class WatchlistManager
 
         _symbols.Add(symbol!);
         OnChanged?.Invoke(_symbols);
+        await SaveAsync();
         ConsoleRenderer.ShowSuccess($"{symbol!.Value} added to watchlist.");
     }
 
     /// <summary>
     /// Prompts the user to remove a symbol from the watchlist.
     /// </summary>
-    public void RemoveSymbol()
+    public async Task RemoveSymbol()
     {
         if (_symbols.Count == 0)
         {
@@ -75,13 +83,14 @@ public sealed class WatchlistManager
 
         _symbols.Remove(target);
         OnChanged?.Invoke(_symbols);
+        await SaveAsync();
         ConsoleRenderer.ShowSuccess($"{input} removed from watchlist.");
     }
 
     /// <summary>
     /// Opens the stock directory so the user can browse and add symbols by number.
     /// </summary>
-    public void BrowseDirectory()
+    public async Task BrowseDirectory()
     {
         bool browsing = true;
         while (browsing)
@@ -113,6 +122,7 @@ public sealed class WatchlistManager
                     {
                         _symbols.Add(symbol!);
                         OnChanged?.Invoke(_symbols);
+                        await SaveAsync();
                         ConsoleRenderer.ShowSuccess($"{ticker} added to watchlist.");
                     }
                 }
@@ -127,7 +137,7 @@ public sealed class WatchlistManager
     }
 
     /// <summary>Shows the watchlist submenu and handles user input.</summary>
-    public void ManageMenu()
+    public async Task ManageMenu()
     {
         bool managing = true;
         while (managing)
@@ -143,18 +153,41 @@ public sealed class WatchlistManager
 
             string? input = System.Console.ReadLine();
 
-            Action action = input switch
+            Func<Task> action = input switch
             {
                 "1" => AddSymbol,
                 "2" => BrowseDirectory,
                 "3" => RemoveSymbol,
-                "4" => () => { ConsoleRenderer.ShowWatchlist(DisplaySymbols); ConsoleRenderer.Pause(); },
-                "0" => () => { managing = false; },
-                _   => () => ConsoleRenderer.ShowError("Invalid choice.")
+                "4" => () => { ConsoleRenderer.ShowWatchlist(DisplaySymbols); ConsoleRenderer.Pause(); return Task.CompletedTask; },
+                "0" => () => { managing = false; return Task.CompletedTask; },
+                _   => () => { ConsoleRenderer.ShowError("Invalid choice."); return Task.CompletedTask; }
             };
 
-            action();
+            await action();
             if (managing && input != "0") ConsoleRenderer.Pause();
+        }
+    }
+
+     /// <summary>Saves the current watchlist to disk.</summary>
+    public async Task SaveAsync()
+    {
+        var symbols = _symbols.Select(s => s.Value).ToList();
+        string json = JsonSerializer.Serialize(symbols, new JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(_filePath, json);
+    }
+
+    /// <summary>Loads the watchlist from disk. Silently skips if file doesn't exist.</summary>
+    public async Task LoadAsync()
+    {
+        if (!File.Exists(_filePath)) return;
+
+        string json = await File.ReadAllTextAsync(_filePath);
+        var symbols = JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>();
+
+        foreach (string raw in symbols)
+        {
+            if (StockSymbol.TryParse(raw, out StockSymbol? symbol))
+                _symbols.Add(symbol!);
         }
     }
 }

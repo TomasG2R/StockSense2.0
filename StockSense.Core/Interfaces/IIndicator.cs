@@ -1,10 +1,10 @@
- using StockSense.Core.Models;
+using StockSense.Core.Models;
 
 namespace StockSense.Core.Interfaces;
 
-  /// <summary>
-  /// Contract that every technical indicator (MA, RSI, MACD) must fulfill.
-  /// </summary>
+/// <summary>
+/// Contract that every technical indicator (MA, RSI, MACD) must fulfill.
+/// </summary>
 public interface IIndicator
 {
     /// <summary>Human-readable name, e.g. "SMA-20" or "RSI-14".</summary>

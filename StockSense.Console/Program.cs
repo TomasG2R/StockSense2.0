@@ -5,7 +5,6 @@ using StockSense.Core.Models;
 using StockSense.Core.Services;
 using StockSense.Console;
 
-// ── Bootstrap ────────────────────────────────────────────────────────────────
 
 // Load API key from appsettings.json
 string settingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
@@ -37,6 +36,7 @@ var alertStore    = new JsonAlertStore("alerts.json");
 var alertService  = new AlertService(alertStore);
 var signalEngine  = new SignalEngine(alertService);
 var watchlist     = new WatchlistManager();
+await watchlist.LoadAsync();
 
 // Subscribe to alert events — print live when an alert fires
 alertService.OnAlertTriggered += alert =>
@@ -44,7 +44,7 @@ alertService.OnAlertTriggered += alert =>
     ConsoleRenderer.ShowSuccess($"ALERT: {alert}");
 };
 
-// ── Main menu loop ────────────────────────────────────────────────────────────
+// ── Main menu loop 
 
 bool running = true;
 while (running)
@@ -54,7 +54,7 @@ while (running)
     switch (choice)
     {
         case 1:
-            watchlist.ManageMenu();
+            await watchlist.ManageMenu();
             break;
 
         case 2:
@@ -82,7 +82,7 @@ while (running)
 
 System.Console.WriteLine("\nGoodbye.");
 
-// ── Analysis ──────────────────────────────────────────────────────────────────
+// ── Analysis
 
 static async Task RunAnalysisAsync(
     IStockDataProvider provider,
@@ -149,7 +149,7 @@ static async Task RunAnalysisAsync(
     ConsoleRenderer.Pause();
 }
 
-// ── Alert history ─────────────────────────────────────────────────────────────
+// ── Alert history 
 
 static async Task ShowAlertHistoryAsync(AlertService alertService)
 {
@@ -158,7 +158,7 @@ static async Task ShowAlertHistoryAsync(AlertService alertService)
     ConsoleRenderer.Pause();
 }
 
-// ── Price history ─────────────────────────────────────────────────────────────
+// ── Price history 
 
 static async Task ShowPriceHistoryAsync(IStockDataProvider provider, WatchlistManager watchlist)
 {
