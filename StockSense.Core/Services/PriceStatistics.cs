@@ -2,12 +2,10 @@ using StockSense.Core.Models;
 
 namespace StockSense.Core.Services;
 
-/// <summary>
 /// Aggregates daily price data into monthly or yearly summaries.
-/// </summary>
 public static class PriceStatistics
 {
-    /// <summary>One period's (month or year) aggregated OHLCV data.</summary>
+    ///One period's (month or year) aggregated OHLCV data.
     public record PeriodSummary(
         string    Label,
         decimal   Open,
@@ -17,10 +15,8 @@ public static class PriceStatistics
         long      Volume,
         int       TradingDays);
 
-    /// <summary>
     /// Groups daily prices into monthly summaries.
     /// Each month shows open (first day), close (last day), high, low, total volume.
-    /// </summary>
     public static IReadOnlyList<PeriodSummary> GroupByMonth(IReadOnlyList<StockPrice> prices)
     {
         return prices
@@ -41,10 +37,8 @@ public static class PriceStatistics
             .ToList();
     }
 
-    /// <summary>
     /// Groups daily prices into yearly summaries.
     /// Each year shows open (first day), close (last day), high, low, total volume.
-    /// </summary>
     public static IReadOnlyList<PeriodSummary> GroupByYear(IReadOnlyList<StockPrice> prices)
     {
         return prices

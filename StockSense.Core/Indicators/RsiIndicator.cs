@@ -2,33 +2,25 @@ using StockSense.Core.Models;
 
 namespace StockSense.Core.Indicators;
 
-/// <summary>
 /// Calculates the Relative Strength Index (RSI).
-/// </summary>
 public sealed class RsiIndicator : IndicatorBase
 {
     private const int DefaultPeriod = 14;
 
-    /// <inheritdoc/>
     public override string Name => $"RSI-{Period}";
 
-    /// <inheritdoc/>
     public override int Period { get; }
 
-    /// <summary>
     /// Creates an RsiIndicator. Period defaults to 14 if not specified.
     /// Named argument example: new RsiIndicator(period: 21)
-    /// </summary>
     public RsiIndicator(int period = DefaultPeriod)
     {
         if (period < 2) throw new ArgumentOutOfRangeException(nameof(period));
         Period = period;
     }
 
-    /// <summary>
     /// Returns one RSI value per price point that has enough history.
     /// Needs at least Period + 1 data points.
-    /// </summary>
     public override IReadOnlyList<decimal> Calculate(IReadOnlyList<StockPrice> prices)
     {
         ValidateInput(prices, Period + 1);
@@ -64,9 +56,8 @@ public sealed class RsiIndicator : IndicatorBase
         return results;
     }
 
-    /// <summary>
+
     /// Signal: Buy if RSI is below 30 (oversold), Sell if above 70 (overbought).
-    /// </summary>
     public override bool TryGetSignal(IReadOnlyList<StockPrice> prices, out SignalType signal)
     {
         signal = SignalType.None;
@@ -85,8 +76,7 @@ public sealed class RsiIndicator : IndicatorBase
         return signal != SignalType.None;
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
-
+    //Private helpers
     private static decimal ComputeRsi(decimal avgGain, decimal avgLoss)
     {
         if (avgLoss == 0) return 100;

@@ -4,25 +4,21 @@ using StockSense.Core.Models;
 
 namespace StockSense.Core.Services;
 
-/// <summary>
 /// Fetches daily and weekly stock price history from the Alpha Vantage API.
-/// </summary>
 public sealed class AlphaVantageService : IStockDataProvider
 {
-    // Single static HttpClient — never create one inside a loop
+    // Single static HttpClient shared across all instances — best practice for performance and resource management
     private static readonly HttpClient _http = new();
-
     private readonly StockSenseOptions _options;
     private readonly RateLimiter _rateLimiter;
 
-    /// <summary>Creates the service with config and rate limiter injected.</summary>
+    ///Creates the service with config and rate limiter injected.
     public AlphaVantageService(StockSenseOptions options, RateLimiter rateLimiter)
     {
         _options     = options     ?? throw new ArgumentNullException(nameof(options));
         _rateLimiter = rateLimiter ?? throw new ArgumentNullException(nameof(rateLimiter));
     }
 
-    /// <inheritdoc/>
     public async Task<IReadOnlyList<StockPrice>> GetDailyAsync(
         StockSymbol symbol,
         DateOnly? start = null,
@@ -48,7 +44,6 @@ public sealed class AlphaVantageService : IStockDataProvider
         return result.OrderBy(p => p.Date).ToList();
     }
 
-    /// <inheritdoc/>
     public async Task<IReadOnlyList<StockPrice>> GetWeeklyAsync(
         StockSymbol symbol,
         CancellationToken ct = default)
@@ -64,14 +59,11 @@ public sealed class AlphaVantageService : IStockDataProvider
         return prices!.OrderBy(p => p.Date).ToList();
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
-
-    /// <summary>
+    //Private helpers 
     /// Tries to parse the raw JSON from Alpha Vantage.
     /// Uses two out parameters: the result list and an error message.
     /// seriesKey is the JSON key that wraps the data (e.g. "Time Series (Daily)").
     /// Returns false (and sets error) if the JSON is invalid or missing expected keys.
-    /// </summary>
     private static bool TryParseResponse(
         string json,
         string seriesKey,

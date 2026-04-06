@@ -20,7 +20,7 @@ public sealed class SignalEngine
     /// <summary>Optional filter applied before an alert is triggered.</summary>
     public SignalFilter? Filter { get; set; }
 
-    /// <summary>Creates the engine with default indicator periods.</summary>
+    ///Creates the engine with default indicator periods.
     public SignalEngine(AlertService alertService)
     {
         _alertService = alertService ?? throw new ArgumentNullException(nameof(alertService));
@@ -29,10 +29,8 @@ public sealed class SignalEngine
         _macd = new MacdIndicator();
     }
 
-    /// <summary>
     /// Runs all indicators against the price history and returns a combined signal.
     /// Also triggers an alert via AlertService if a signal is found.
-    /// </summary>
     public async Task<SignalType> EvaluateAsync(
         string symbol,
         IReadOnlyList<StockPrice> prices,
@@ -50,10 +48,8 @@ public sealed class SignalEngine
         return combined;
     }
 
-    /// <summary>
     /// Runs MA, RSI, and MACD signals and combines them.
     /// StrongBuy/StrongSell when 2 or more indicators agree.
-    /// </summary>
     public SignalType CombineSignals(IReadOnlyList<StockPrice> prices)
     {
         int buyCount  = 0;
@@ -90,8 +86,7 @@ public sealed class SignalEngine
         };
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
-
+    //Private helpers 
     private static void Count(SignalType signal, ref int buyCount, ref int sellCount)
     {
         // Pattern matching with is operator

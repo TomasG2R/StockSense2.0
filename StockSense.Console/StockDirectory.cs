@@ -1,9 +1,7 @@
 namespace StockSense.Console;
 
-/// <summary>
 /// A hardcoded directory of well-known stock tickers grouped by sector.
 /// No API call needed — always available.
-/// </summary>
 public static class StockDirectory
 {
     public record StockEntry(string Symbol, string Company, string Sector);
@@ -53,11 +51,11 @@ public static class StockDirectory
         new("GE",    "GE Aerospace",                 "Industrials"),
     };
 
-    /// <summary>Returns all entries for a given sector.</summary>
+    ///Returns all entries for a given sector.
     public static IEnumerable<StockEntry> BySector(string sector) =>
         All.Where(e => e.Sector == sector);
 
-    /// <summary>Returns the distinct list of sectors.</summary>
+    ///Returns the distinct list of sectors.
     public static IEnumerable<string> Sectors =>
         All.Select(e => e.Sector).Distinct();
 }

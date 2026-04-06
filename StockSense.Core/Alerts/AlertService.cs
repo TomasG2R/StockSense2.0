@@ -3,9 +3,7 @@ using StockSense.Core.Models;
 
 namespace StockSense.Core.Alerts;
 
-/// <summary>
 /// Triggers and stores alerts when a signal is detected for a stock.
-/// </summary>
 public sealed class AlertService
 {
     // Static constructor — runs once before AlertService is first used anywhere.
@@ -23,27 +21,25 @@ public sealed class AlertService
         };
     }
 
-    /// <summary>Message templates keyed by signal type. Set in static constructor.</summary>
+    ///Message templates keyed by signal type. Set in static constructor.
     public static Dictionary<SignalType, string> MessageTemplates { get; }
 
     // Delegate: any subscriber can listen for new alerts
     public delegate void AlertTriggeredHandler(Alert alert);
 
-    /// <summary>Fires whenever a new alert is created and saved.</summary>
+    ///Fires whenever a new alert is created and saved.
     public event AlertTriggeredHandler? OnAlertTriggered;
 
     private readonly IAlertStore _store;
 
-    /// <summary>Creates the service with an alert store injected.</summary>
+    /// Creates the service with an alert store injected.
     public AlertService(IAlertStore store)
     {
         _store = store ?? throw new ArgumentNullException(nameof(store));
     }
 
-    /// <summary>
     /// Creates and saves an alert for the given symbol and signal.
     /// Fires OnAlertTriggered after saving.
-    /// </summary>
     public async Task TriggerAsync(
         string symbol,
         SignalType signal,
@@ -70,7 +66,7 @@ public sealed class AlertService
         OnAlertTriggered?.Invoke(alert);
     }
 
-    /// <summary>Returns all saved alerts, optionally filtered by symbol.</summary>
+    ///Returns all saved alerts, optionally filtered by symbol.
     public Task<IReadOnlyList<Alert>> GetHistoryAsync(
         StockSymbol? symbol = null,
         CancellationToken ct = default) =>

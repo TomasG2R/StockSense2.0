@@ -1,11 +1,9 @@
 namespace StockSense.Core.Models;
 
-/// <summary>
 /// Holds the three values produced by a MACD calculation for one date.
 /// Macd      = 12-day EMA minus 26-day EMA
 /// Signal    = 9-day EMA of the Macd line
 /// Histogram = Macd minus Signal  (positive = bullish momentum, negative = bearish)
-/// </summary>
 public sealed class MacdPoint : IFormattable
 {
     public DateTimeOffset Date      { get; init; }
@@ -13,9 +11,8 @@ public sealed class MacdPoint : IFormattable
     public decimal        Signal    { get; init; }
     public decimal        Histogram { get; init; }
 
-    // ── Deconstructor ────────────────────────────────────────────────────────
+    //Deconstructor 
     // Lets you write:  var (date, macd, signal, histogram) = point;
-
     public void Deconstruct(
         out DateTimeOffset date,
         out decimal macd,
@@ -28,11 +25,10 @@ public sealed class MacdPoint : IFormattable
         histogram = Histogram;
     }
 
-    // ── IFormattable ─────────────────────────────────────────────────────────
+    //IFormattable 
     // "S" → short:  2024-03-15 | MACD: 1.23
     // "L" → long:   2024-03-15 | MACD: 1.23  Sig: 0.98  Hist: +0.25
     // null / other  → same as "S"
-
     public string ToString(string? format, IFormatProvider? formatProvider)
     {
         string d = Date.ToString("yyyy-MM-dd");

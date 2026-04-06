@@ -44,8 +44,7 @@ alertService.OnAlertTriggered += alert =>
     ConsoleRenderer.ShowSuccess($"ALERT: {alert}");
 };
 
-// ── Main menu loop ────────────────────────────────────────────────────────────
-
+//Main menu loop
 bool running = true;
 while (running)
 {
@@ -86,8 +85,7 @@ while (running)
 
 System.Console.WriteLine("\nGoodbye.");
 
-// ── Daily analysis ────────────────────────────────────────────────────────────
-
+// Daily analysis 
 static async Task RunAnalysisAsync(
     IStockDataProvider provider,
     SignalEngine signalEngine,
@@ -140,8 +138,7 @@ static async Task RunAnalysisAsync(
     ConsoleRenderer.Pause();
 }
 
-// ── Weekly analysis ───────────────────────────────────────────────────────────
-
+//Weekly analysis 
 static async Task RunWeeklyAnalysisAsync(
     IStockDataProvider provider,
     SignalEngine signalEngine,
@@ -194,8 +191,7 @@ static async Task RunWeeklyAnalysisAsync(
     ConsoleRenderer.Pause();
 }
 
-// ── Alert history ─────────────────────────────────────────────────────────────
-
+//Alert history
 static async Task ShowAlertHistoryAsync(AlertService alertService)
 {
     var alerts = await alertService.GetHistoryAsync();
@@ -203,8 +199,7 @@ static async Task ShowAlertHistoryAsync(AlertService alertService)
     ConsoleRenderer.Pause();
 }
 
-// ── Price history ─────────────────────────────────────────────────────────────
-
+//Price history
 static async Task ShowPriceHistoryAsync(IStockDataProvider provider, WatchlistManager watchlist)
 {
     if (watchlist.Symbols.Count == 0)

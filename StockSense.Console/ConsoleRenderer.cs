@@ -3,15 +3,12 @@ using StockSense.Core.Models;
 
 namespace StockSense.Console;
 
-/// <summary>
 /// Handles all console output — tables, menus, colored text.
 /// No logic lives here, only display.
-/// </summary>
 public static class ConsoleRenderer
 {
-    // ── Menu ─────────────────────────────────────────────────────────────────
-
-    /// <summary>Prints the main menu and returns the user's choice.</summary>
+    // Menu 
+    ///Prints the main menu and returns the user's choice.
     public static int ShowMainMenu()
     {
         System.Console.Clear();
@@ -30,9 +27,8 @@ public static class ConsoleRenderer
         return int.TryParse(System.Console.ReadLine(), out int choice) ? choice : -1;
     }
 
-    // ── Watchlist ─────────────────────────────────────────────────────────────
-
-    /// <summary>Prints the current watchlist.</summary>
+    //Watchlist 
+    /// Prints the current watchlist.
     public static void ShowWatchlist(IReadOnlyList<string> symbols)
     {
         System.Console.WriteLine("\n── Watchlist ──────────────────");
@@ -46,9 +42,8 @@ public static class ConsoleRenderer
         System.Console.WriteLine();
     }
 
-    // ── Analysis results ─────────────────────────────────────────────────────
-
-    /// <summary>Prints a header row before analysis results.</summary>
+    //Analysis results
+    /// Prints a header row before analysis results.
     public static void ShowAnalysisHeader(string timeframe = "Daily")
     {
         System.Console.WriteLine();
@@ -57,7 +52,7 @@ public static class ConsoleRenderer
         System.Console.WriteLine(new string('─', 64));
     }
 
-    /// <summary>Prints one row of analysis results with color-coded signal.</summary>
+    /// Prints one row of analysis results with color-coded signal.
     public static void ShowAnalysisRow(
         string symbol,
         decimal close,
@@ -80,9 +75,8 @@ public static class ConsoleRenderer
         System.Console.ResetColor();
     }
 
-    // ── Alert history ─────────────────────────────────────────────────────────
-
-    /// <summary>Prints a list of historical alerts.</summary>
+    //Alert history
+    ///Prints a list of historical alerts.
     public static void ShowAlerts(IReadOnlyList<Alert> alerts)
     {
         System.Console.WriteLine("\n── Alert History ──────────────");
@@ -102,9 +96,8 @@ public static class ConsoleRenderer
         System.Console.WriteLine();
     }
 
-    // ── Utilities ─────────────────────────────────────────────────────────────
-
-    /// <summary>Prints an error message in red.</summary>
+    // Utilities 
+    /// Prints an error message in red.
     public static void ShowError(string message)
     {
         System.Console.ForegroundColor = ConsoleColor.Red;
@@ -112,7 +105,7 @@ public static class ConsoleRenderer
         System.Console.ResetColor();
     }
 
-    /// <summary>Prints a success message in green.</summary>
+    ///Prints a success message in green.
     public static void ShowSuccess(string message)
     {
         System.Console.ForegroundColor = ConsoleColor.Green;
@@ -120,9 +113,8 @@ public static class ConsoleRenderer
         System.Console.ResetColor();
     }
 
-    // ── Price history ─────────────────────────────────────────────────────────
-
-    /// <summary>Prints a monthly or yearly price history table.</summary>
+    //Price history 
+    /// Prints a monthly or yearly price history table.
     public static void ShowPriceHistory(
         string symbol,
         IReadOnlyList<StockSense.Core.Services.PriceStatistics.PeriodSummary> periods,
@@ -148,7 +140,7 @@ public static class ConsoleRenderer
         System.Console.WriteLine();
     }
 
-    /// <summary>Waits for the user to press Enter before continuing.</summary>
+    ///Waits for the user to press Enter before continuing.
     public static void Pause()
     {
         System.Console.WriteLine("\nPress Enter to continue...");

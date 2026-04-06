@@ -3,10 +3,8 @@ using StockSense.Core.Models;
 
 namespace StockSense.Core.Services;
 
-/// <summary>
 /// Wraps an IStockDataProvider and caches results in memory.
 /// If prices for a symbol were already fetched today, returns the cached copy.
-/// </summary>
 public sealed class CachedStockDataProvider : IStockDataProvider
 {
     private readonly IStockDataProvider _inner;
@@ -15,13 +13,12 @@ public sealed class CachedStockDataProvider : IStockDataProvider
     private readonly Dictionary<string, IReadOnlyList<StockPrice>> _dailyCache  = new();
     private readonly Dictionary<string, IReadOnlyList<StockPrice>> _weeklyCache = new();
 
-    /// <summary>Creates the provider wrapping any IStockDataProvider implementation.</summary>
+    /// Creates the provider wrapping any IStockDataProvider implementation.
     public CachedStockDataProvider(IStockDataProvider inner)
     {
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
     }
 
-    /// <inheritdoc/>
     public async Task<IReadOnlyList<StockPrice>> GetDailyAsync(
         StockSymbol symbol,
         DateOnly? start = null,
@@ -46,7 +43,6 @@ public sealed class CachedStockDataProvider : IStockDataProvider
         return fresh;
     }
 
-    /// <inheritdoc/>
     public async Task<IReadOnlyList<StockPrice>> GetWeeklyAsync(
         StockSymbol symbol,
         CancellationToken ct = default)
@@ -67,22 +63,21 @@ public sealed class CachedStockDataProvider : IStockDataProvider
         return fresh;
     }
 
-    /// <summary>Removes a single symbol from both caches, forcing a fresh fetch next time.</summary>
+    ///Removes a single symbol from both caches, forcing a fresh fetch next time.
     public void Invalidate(StockSymbol symbol)
     {
         _dailyCache.Remove(symbol.Value);
         _weeklyCache.Remove(symbol.Value);
     }
 
-    /// <summary>Clears both caches.</summary>
+    /// Clears both caches.
     public void InvalidateAll()
     {
         _dailyCache.Clear();
         _weeklyCache.Clear();
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
-
+    //Private helpers
     private static IReadOnlyList<StockPrice> ApplyDateFilter(
         IReadOnlyList<StockPrice> prices,
         DateOnly? start,

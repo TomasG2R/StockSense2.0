@@ -1,15 +1,13 @@
 namespace StockSense.Core.Models;
 
-/// <summary>
 /// A single computed indicator value at a specific date.
 /// Example: RSI = 72.4 on 2024-03-15.
-/// </summary>
 public sealed class IndicatorPoint : IEquatable<IndicatorPoint>
 {
     public DateTimeOffset Date  { get; init; }
     public decimal        Value { get; init; }
 
-    // ── IEquatable<IndicatorPoint> ───────────────────────────────────────────
+    //IEquatable<IndicatorPoint>
     // Two points are equal if they fall on the same date.
 
     public bool Equals(IndicatorPoint? other)
@@ -23,9 +21,8 @@ public sealed class IndicatorPoint : IEquatable<IndicatorPoint>
 
     public override int GetHashCode() => Date.Date.GetHashCode();
 
-    // ── Deconstructor ────────────────────────────────────────────────────────
+    //Deconstructor
     // Lets you write:  var (date, value) = point;
-
     public void Deconstruct(out DateTimeOffset date, out decimal value)
     {
         date  = Date;

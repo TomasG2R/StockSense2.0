@@ -2,9 +2,7 @@ using StockSense.Core.Models;
 
 namespace StockSense.Core.Indicators;
 
-/// <summary>
 /// Calculates Simple Moving Average (SMA) and Exponential Moving Average (EMA).
-/// </summary>
 public sealed class MovingAverageIndicator : IndicatorBase
 {
     private const int DefaultPeriod = 20;
@@ -14,17 +12,15 @@ public sealed class MovingAverageIndicator : IndicatorBase
     
     public override int Period { get; }
 
-    /// <summary>Creates a MovingAverageIndicator with a custom period.</summary>
+    ///Creates a MovingAverageIndicator with a custom period.
     public MovingAverageIndicator(int period = DefaultPeriod)
     {
         if (period < 1) throw new ArgumentOutOfRangeException(nameof(period));
         Period = period;
     }
 
-    /// <summary>
     /// Returns the SMA value for each position that has enough history.
     /// Uses Range slicing on the underlying array to get each price window.
-    /// </summary>
     public override IReadOnlyList<decimal> Calculate(IReadOnlyList<StockPrice> prices)
     {
         ValidateInput(prices, Period);
@@ -45,10 +41,8 @@ public sealed class MovingAverageIndicator : IndicatorBase
         return results;
     }
 
-    /// <summary>
     /// Calculates EMA for the given period.
     /// First EMA value is seeded with a simple average (not zero).
-    /// </summary>
     public IReadOnlyList<decimal> CalculateEma(IReadOnlyList<StockPrice> prices)
     {
         ValidateInput(prices, Period);
@@ -74,11 +68,9 @@ public sealed class MovingAverageIndicator : IndicatorBase
         return results;
     }
 
-    /// <summary>
     /// Signal: Golden cross (SMA20 crosses above SMA50) = Buy.
     /// Death cross (SMA20 crosses below SMA50) = Sell.
     /// Requires at least 51 data points.
-    /// </summary>
     public override bool TryGetSignal(IReadOnlyList<StockPrice> prices, out SignalType signal)
     {
         signal = SignalType.None;

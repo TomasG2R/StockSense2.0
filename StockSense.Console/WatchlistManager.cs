@@ -3,11 +3,9 @@ using StockSense.Core.Models;
 
 namespace StockSense.Console;
 
-/// <summary>
 /// Manages the user's watchlist of stock symbols.
 /// Handles adding, removing, and listing symbols.
 /// Persists the watchlist to a JSON file between sessions.
-/// </summary>
 public sealed class WatchlistManager
 {
     private readonly List<StockSymbol> _symbols = new();
@@ -20,19 +18,18 @@ public sealed class WatchlistManager
     // Delegate: fired whenever the watchlist changes
     public delegate void WatchlistChangedHandler(IReadOnlyList<StockSymbol> current);
 
-    /// <summary>Fires when a symbol is added or removed.</summary>
+    ///Fires when a symbol is added or removed.
     public event WatchlistChangedHandler? OnChanged;
 
-    /// <summary>Current symbols as read-only strings for display.</summary>
+    ///Current symbols as read-only strings for display.
     public IReadOnlyList<string> DisplaySymbols =>
         _symbols.Select(s => s.Value).ToList();
 
-    /// <summary>Current symbols as StockSymbol list for analysis.</summary>
+    ///Current symbols as StockSymbol list for analysis.
     public IReadOnlyList<StockSymbol> Symbols => _symbols;
 
-    /// <summary>
     /// Prompts the user to add a symbol. Validates input via StockSymbol.TryParse.
-    /// </summary>
+  
      public async Task AddSymbol()
     {
         System.Console.Write("\nEnter stock symbol (e.g. AAPL): ");
@@ -58,9 +55,7 @@ public sealed class WatchlistManager
         ConsoleRenderer.ShowSuccess($"{symbol!.Value} added to watchlist.");
     }
 
-    /// <summary>
     /// Prompts the user to remove a symbol from the watchlist.
-    /// </summary>
     public async Task RemoveSymbol()
     {
         if (_symbols.Count == 0)
@@ -87,9 +82,7 @@ public sealed class WatchlistManager
         ConsoleRenderer.ShowSuccess($"{input} removed from watchlist.");
     }
 
-    /// <summary>
     /// Opens the stock directory so the user can browse and add symbols by number.
-    /// </summary>
     public async Task BrowseDirectory()
     {
         bool browsing = true;
@@ -136,7 +129,7 @@ public sealed class WatchlistManager
         }
     }
 
-    /// <summary>Shows the watchlist submenu and handles user input.</summary>
+    /// Shows the watchlist submenu and handles user input.
     public async Task ManageMenu()
     {
         bool managing = true;
@@ -168,7 +161,7 @@ public sealed class WatchlistManager
         }
     }
 
-     /// <summary>Saves the current watchlist to disk.</summary>
+     ///Saves the current watchlist to disk.
     public async Task SaveAsync()
     {
         var symbols = _symbols.Select(s => s.Value).ToList();
@@ -176,7 +169,7 @@ public sealed class WatchlistManager
         await File.WriteAllTextAsync(_filePath, json);
     }
 
-    /// <summary>Loads the watchlist from disk. Silently skips if file doesn't exist.</summary>
+    ///Loads the watchlist from disk. Silently skips if file doesn't exist.
     public async Task LoadAsync()
     {
         if (!File.Exists(_filePath)) return;

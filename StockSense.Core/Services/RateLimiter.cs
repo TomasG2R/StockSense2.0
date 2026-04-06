@@ -1,9 +1,7 @@
 namespace StockSense.Core.Services;
 
-/// <summary>
 /// Enforces Alpha Vantage rate limits: 5 requests/minute and 25 requests/day.
 /// Uses Queue&lt;DateTime&gt; to track when each request was made.
-/// </summary>
 public sealed class RateLimiter
 {
     private readonly int _perMinuteLimit;
@@ -14,17 +12,15 @@ public sealed class RateLimiter
     private readonly Queue<DateTime> _minuteWindow = new();
     private readonly Queue<DateTime> _dayWindow    = new();
 
-    /// <summary>Creates a RateLimiter with the given per-minute and per-day caps.</summary>
+    /// Creates a RateLimiter with the given per-minute and per-day caps.
     public RateLimiter(int perMinuteLimit = 5, int perDayLimit = 25)
     {
         _perMinuteLimit = perMinuteLimit;
         _perDayLimit    = perDayLimit;
     }
 
-    /// <summary>
     /// Waits until a request slot is available, then records the request.
     /// Call this before every API request.
-    /// </summary>
     public async Task WaitForSlotAsync(CancellationToken ct = default)
     {
         while (true)
@@ -50,7 +46,7 @@ public sealed class RateLimiter
         }
     }
 
-    /// <summary>Returns true if a request can be made right now without waiting.</summary>
+    /// Returns true if a request can be made right now without waiting.
     public bool CanRequest()
     {
         DateTime now = DateTime.UtcNow;
@@ -59,8 +55,7 @@ public sealed class RateLimiter
                _dayWindow.Count    < _perDayLimit;
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
-
+    //Private helpers
     private void PurgeExpired(DateTime now)
     {
         // Remove timestamps older than 1 minute from the per-minute queue

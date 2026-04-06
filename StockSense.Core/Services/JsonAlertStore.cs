@@ -5,14 +5,12 @@ using StockSense.Core.Models;
 
 namespace StockSense.Core.Services;
 
-/// <summary>
 /// Persists alerts to a local alerts.json file using System.Text.Json.
-/// </summary>
 public sealed class JsonAlertStore : IAlertStore
 {
     private readonly string _filePath;
 
-    // List<T> from System.Collections.Generic — grading requirement
+    // List<T> from System.Collections.Generic
     private readonly List<Alert> _alerts = new();
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -20,13 +18,12 @@ public sealed class JsonAlertStore : IAlertStore
         WriteIndented = true
     };
 
-    /// <summary>Creates the store pointing at the given file path.</summary>
+    ///Creates the store pointing at the given file path.
     public JsonAlertStore(string filePath = "alerts.json")
     {
         _filePath = filePath;
     }
 
-    /// <inheritdoc/>
     public async Task SaveAsync(Alert alert, CancellationToken ct = default)
     {
         await LoadIntoMemoryAsync(ct);
@@ -43,7 +40,6 @@ public sealed class JsonAlertStore : IAlertStore
         }
     }
 
-    /// <inheritdoc/>
     public async Task<IReadOnlyList<Alert>> LoadAsync(
         StockSymbol? symbol = null,
         CancellationToken ct = default)
@@ -58,8 +54,7 @@ public sealed class JsonAlertStore : IAlertStore
         return result.OrderByDescending(a => a.CreatedAt).ToList();
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────────
-
+    //Private helpers 
     private async Task LoadIntoMemoryAsync(CancellationToken ct)
     {
         if (_alerts.Count > 0) return;          // already loaded
