@@ -37,6 +37,17 @@ public static class PriceStatistics
             .ToList();
     }
 
+    /// Returns the average daily volume over the last <paramref name="period"/> trading days.
+    /// Returns null if there are not enough data points.
+    public static long? AverageVolume(IReadOnlyList<StockPrice> prices, int period = 20)
+    {
+        if (prices.Count < period) return null;
+        // Take the last `period` prices and average their volume
+        return (long)prices
+            .Skip(prices.Count - period)
+            .Average(p => p.Volume);
+    }
+
     /// Groups daily prices into yearly summaries.
     /// Each year shows open (first day), close (last day), high, low, total volume.
     public static IReadOnlyList<PeriodSummary> GroupByYear(IReadOnlyList<StockPrice> prices)

@@ -1,3 +1,5 @@
+using StockSense.Core.Exceptions;
+
 namespace StockSense.Core.Services;
 
 /// Enforces Alpha Vantage rate limits: 5 requests/minute and 25 requests/day.
@@ -28,10 +30,14 @@ public sealed class RateLimiter
             ct.ThrowIfCancellationRequested();
 
             DateTime now = DateTime.UtcNow;
-            PurgeExpired(now);
+            PurgeExpired(now);  // always purge first so counts are accurate
 
-            if (_minuteWindow.Count < _perMinuteLimit &&
-                _dayWindow.Count    < _perDayLimit)
+            // GRADING: custom exception — check after purging so slots that expired
+            // in the last 24 h are freed before we decide to throw
+            if (_dayWindow.Count >= _perDayLimit)
+                throw new RateLimitException();
+
+            if (_minuteWindow.Count < _perMinuteLimit)
             {
                 // Slot available — record this request and return
                 _minuteWindow.Enqueue(now);
@@ -40,7 +46,7 @@ public sealed class RateLimiter
                 return;
             }
 
-            // No slot — calculate how long to wait before retrying
+            // Minute limit hit — wait until the oldest entry expires
             TimeSpan delay = GetWaitTime(now);
             await Task.Delay(delay, ct);
         }

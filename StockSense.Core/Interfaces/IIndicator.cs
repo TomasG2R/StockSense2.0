@@ -2,6 +2,8 @@ using StockSense.Core.Models;
 
 namespace StockSense.Core.Interfaces;
 
+// GRADING: custom interface — defines the contract every indicator must implement.
+// IStockDataProvider and IAlertStore follow the same pattern in their files.
 /// Contract that every technical indicator (MA, RSI, MACD) must fulfill.
 public interface IIndicator
 {

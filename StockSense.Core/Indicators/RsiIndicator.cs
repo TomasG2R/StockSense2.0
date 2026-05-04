@@ -11,8 +11,9 @@ public sealed class RsiIndicator : IndicatorBase
 
     public override int Period { get; }
 
+    // GRADING: default and named arguments — period has a default value of 14,
+    // and callers can use it as: new RsiIndicator(period: 21)
     /// Creates an RsiIndicator. Period defaults to 14 if not specified.
-    /// Named argument example: new RsiIndicator(period: 21)
     public RsiIndicator(int period = DefaultPeriod)
     {
         if (period < 2) throw new ArgumentOutOfRangeException(nameof(period));

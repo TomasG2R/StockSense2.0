@@ -423,3 +423,8 @@ watchlist.json
 *.msix
 *.msm
 *.msp
+
+# SQLite database files — generated at runtime
+*.db
+*.db-shm
+*.db-wal

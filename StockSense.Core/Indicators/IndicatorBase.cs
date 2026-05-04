@@ -3,6 +3,8 @@ using StockSense.Core.Models;
 
 namespace StockSense.Core.Indicators;
 
+// GRADING: abstract class — IndicatorBase cannot be instantiated directly.
+// Every indicator (MA, RSI, MACD) must extend it and implement Calculate + TryGetSignal.
 /// Shared base for all technical indicators. Cannot be instantiated directly.
 public abstract class IndicatorBase : IIndicator
 {

@@ -31,7 +31,7 @@ public sealed class MovingAverageIndicator : IndicatorBase
 
         for (int i = Period - 1; i < arr.Length; i++)
         {
-            // Range type requirement: slice the window of prices for this period
+            // GRADING: Range type — C# Range (..) slices an array without copying manually
             StockPrice[] window = arr[(i - Period + 1)..(i + 1)];
             decimal sum = 0;
             foreach (StockPrice p in window) sum += p.Close;
@@ -68,30 +68,27 @@ public sealed class MovingAverageIndicator : IndicatorBase
         return results;
     }
 
-    /// Signal: Golden cross (SMA20 crosses above SMA50) = Buy.
-    /// Death cross (SMA20 crosses below SMA50) = Sell.
-    /// Requires at least 51 data points.
+    /// Signal: price crosses above SMA-20 = Buy, crosses below SMA-20 = Sell.
+    /// Fires weekly rather than quarterly, making it useful for swing trading.
+    /// Requires at least Period + 1 (21) data points to compare today vs yesterday.
     public override bool TryGetSignal(IReadOnlyList<StockPrice> prices, out SignalType signal)
     {
         signal = SignalType.None;
-        if (prices.Count < 51) return false;
+        if (prices.Count < Period + 1) return false;
 
-        // Calculate SMA20 and SMA50 for the last two days
-        var sma20 = _sma20.Calculate(prices);
-        var sma50 = _sma50.Calculate(prices);
+        IReadOnlyList<decimal> sma = _sma20.Calculate(prices);
 
-        // Today and yesterday SMA20 values
-        decimal sma20Today     = sma20[^1];
-        decimal sma20Yesterday = sma20[^2];
+        decimal prevClose = prices[^2].Close;
+        decimal currClose = prices[^1].Close;
+        decimal prevSma   = sma[^2];
+        decimal currSma   = sma[^1];
 
-        // Today and yesterday SMA50 values
-        decimal sma50Today     = sma50[^1];
-        decimal sma50Yesterday = sma50[^2];
+        // Price crossed above SMA-20 → upward momentum → Buy
+        // Price crossed below SMA-20 → downward momentum → Sell
+        bool crossedAbove = prevClose <= prevSma && currClose > currSma;
+        bool crossedBelow = prevClose >= prevSma && currClose < currSma;
 
-        bool goldenCross = sma20Yesterday <= sma50Yesterday && sma20Today > sma50Today;
-        bool deathCross  = sma20Yesterday >= sma50Yesterday && sma20Today < sma50Today;
-
-        signal = (goldenCross, deathCross) switch
+        signal = (crossedAbove, crossedBelow) switch
         {
             (true, _) => SignalType.Buy,
             (_, true) => SignalType.Sell,

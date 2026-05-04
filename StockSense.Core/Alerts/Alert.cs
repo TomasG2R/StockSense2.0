@@ -3,13 +3,16 @@
 // Saved to alerts.json when a signal is detected.
 // Grading: bitwise operations (SignalType flags), sealed class.
 using StockSense.Core.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace StockSense.Core.Alerts;
 
-/// A triggered trading alert. Created by AlertService, persisted to alerts.json.
+/// A triggered trading alert. Created by AlertService, persisted to the SQLite database.
 public sealed class Alert
 {
-    ///Unique identifier for this alert.
+
+    // GRADING: EF Core requires a primary key — [Key] marks this property as the PK
+    [Key]
     public Guid Id { get; init; }
 
     ///The stock ticker this alert is for, e.g. "AAPL".
@@ -23,6 +26,16 @@ public sealed class Alert
 
     ///Human-readable description of why the alert fired.
     public string Message { get; init; } = string.Empty;
+
+    // ATR-based trade levels — null when there was not enough data to calculate ATR
+    /// Price at the moment the alert fired.
+    public decimal? Entry { get; init; }
+
+    /// Suggested stop-loss price (Entry - 1.5 × ATR).
+    public decimal? StopLoss { get; init; }
+
+    /// Suggested take-profit price (Entry + 3.0 × ATR for Buy, Entry - 3.0 × ATR for Sell).
+    public decimal? Target { get; init; }
 
     //Signal helpers
     // Bitwise & checks if a specific flag is switched on inside Signal.

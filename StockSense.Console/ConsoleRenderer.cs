@@ -92,6 +92,22 @@ public static class ConsoleRenderer
             System.Console.Write($"  [{a.CreatedAt:yyyy-MM-dd HH:mm}] {a.Symbol,-8} {a.Signal,-20}");
             System.Console.ResetColor();
             System.Console.WriteLine(a.Message);
+
+            if (a.Entry is not null && a.StopLoss is not null && a.Target is not null)
+            {
+                decimal rr = a.Entry.Value != a.StopLoss.Value
+                    ? Math.Abs(a.Target.Value - a.Entry.Value) /
+                      Math.Abs(a.Entry.Value  - a.StopLoss.Value)
+                    : 0;
+
+                System.Console.WriteLine($"             Entry:  ${a.Entry:F2}");
+                System.Console.ForegroundColor = ConsoleColor.Red;
+                System.Console.WriteLine($"             Stop:   ${a.StopLoss:F2}");
+                System.Console.ResetColor();
+                System.Console.ForegroundColor = ConsoleColor.Green;
+                System.Console.WriteLine($"             Target: ${a.Target:F2}  (R/R {rr:F1})");
+                System.Console.ResetColor();
+            }
         }
         System.Console.WriteLine();
     }
