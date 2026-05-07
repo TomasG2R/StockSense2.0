@@ -9,6 +9,21 @@ public sealed class StockSenseOptions : ICloneable
     /// Base URL for the Alpha Vantage API.
     public string? BaseUrl { get; set; }
 
+    /// Finnhub API key. Required for earnings and analyst rating features.
+    public string? FinnhubApiKey { get; set; }
+
+    /// Base URL for the Finnhub API. Defaults to the standard endpoint.
+    public string? FinnhubBaseUrl { get; set; }
+
+    /// Returns the Finnhub API key, or throws if it was never set.
+    public string GetFinnhubApiKey() =>
+        FinnhubApiKey ?? throw new InvalidOperationException(
+            "Finnhub API key is not configured. Set FinnhubApiKey in appsettings.json.");
+
+    /// Returns the Finnhub base URL, falling back to the default if null.
+    public string GetFinnhubBaseUrl() =>
+        FinnhubBaseUrl ?? "https://finnhub.io/api/v1";
+
     /// Maximum API requests allowed per minute.
     public int RequestsPerMinute { get; set; } = 5;
 
@@ -36,6 +51,8 @@ public sealed class StockSenseOptions : ICloneable
     {
         ApiKey            = ApiKey,
         BaseUrl           = BaseUrl,
+        FinnhubApiKey     = FinnhubApiKey,
+        FinnhubBaseUrl    = FinnhubBaseUrl,
         RequestsPerMinute = RequestsPerMinute,
         RequestsPerDay    = RequestsPerDay,
     };

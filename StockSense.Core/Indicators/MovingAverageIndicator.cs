@@ -68,33 +68,36 @@ public sealed class MovingAverageIndicator : IndicatorBase
         return results;
     }
 
-    /// Signal: price crosses above SMA-20 = Buy, crosses below SMA-20 = Sell.
-    /// Fires weekly rather than quarterly, making it useful for swing trading.
-    /// Requires at least Period + 1 (21) data points to compare today vs yesterday.
+    /// Signal: price crossed above/below SMA-20 within the last LookbackBars bars.
+    /// A 3-bar window prevents missing signals when the crossover happened
+    /// yesterday or the day before but today's bar hasn't moved back.
+    private const int LookbackBars = 3;
+
     public override bool TryGetSignal(IReadOnlyList<StockPrice> prices, out SignalType signal)
     {
         signal = SignalType.None;
-        if (prices.Count < Period + 1) return false;
+        int required = Period + LookbackBars;
+        if (prices.Count < required) return false;
 
         IReadOnlyList<decimal> sma = _sma20.Calculate(prices);
 
-        decimal prevClose = prices[^2].Close;
-        decimal currClose = prices[^1].Close;
-        decimal prevSma   = sma[^2];
-        decimal currSma   = sma[^1];
-
-        // Price crossed above SMA-20 → upward momentum → Buy
-        // Price crossed below SMA-20 → downward momentum → Sell
-        bool crossedAbove = prevClose <= prevSma && currClose > currSma;
-        bool crossedBelow = prevClose >= prevSma && currClose < currSma;
-
-        signal = (crossedAbove, crossedBelow) switch
+        // Check the last LookbackBars bars for a crossover
+        // sma and prices arrays are aligned from the end: sma[^1] = prices[^1]
+        for (int offset = 1; offset <= LookbackBars; offset++)
         {
-            (true, _) => SignalType.Buy,
-            (_, true) => SignalType.Sell,
-            _         => SignalType.None
-        };
+            decimal prevClose = prices[^(offset + 1)].Close;
+            decimal currClose = prices[^offset].Close;
+            decimal prevSma   = sma[^(offset + 1)];
+            decimal currSma   = sma[^offset];
 
-        return signal != SignalType.None;
+            bool crossedAbove = prevClose <= prevSma && currClose > currSma;
+            bool crossedBelow = prevClose >= prevSma && currClose < currSma;
+
+            // Return the most recent crossover found
+            if (crossedAbove) { signal = SignalType.Buy;  return true; }
+            if (crossedBelow) { signal = SignalType.Sell; return true; }
+        }
+
+        return false;
     }
 }
