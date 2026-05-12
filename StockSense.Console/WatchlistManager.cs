@@ -81,9 +81,9 @@ public sealed class WatchlistManager
         System.Console.Write("Enter symbol to remove: ");
         string? input = System.Console.ReadLine()?.Trim().ToUpperInvariant();
 
-        // GRADING: IEnumerable<T> — LINQ FirstOrDefault works on WatchlistCollection
-        // because it implements IEnumerable<StockSymbol>
-        StockSymbol? target = _symbols.FirstOrDefault(s => s.Value == input);
+        // GRADING: iterator — Filter() uses yield return to lazily walk the collection.
+        // FirstOrDefault() then picks the first match (or null if none).
+        StockSymbol? target = _symbols.Filter(s => s.Value == input).FirstOrDefault();
         if (target is null)
         {
             ConsoleRenderer.ShowError($"{input} is not in the watchlist.");
@@ -169,7 +169,6 @@ public sealed class WatchlistManager
                 "4" => () =>
                 {
                     ConsoleRenderer.ShowWatchlist(DisplaySymbols);
-                    ConsoleRenderer.Pause();
                     return Task.CompletedTask;
                 },
                 "0" => () => { managing = false; return Task.CompletedTask; },

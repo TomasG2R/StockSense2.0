@@ -102,9 +102,14 @@ public sealed class AdxIndicator : IndicatorBase
         return Calculate(prices)[^1];
     }
 
-    /// True when the market is trending strongly enough to trust signals.
+    /// True when the market is trending strongly enough to trust signals (ADX >= 25).
     public bool IsTrending(IReadOnlyList<StockPrice> prices) =>
         (LatestAdx(prices) ?? 0m) >= 25m;
+
+    /// True when the market is ranging and signals should be suppressed (ADX < 20).
+    /// Signals in the weakly-trending zone (ADX 20–24) are still allowed through.
+    public bool IsRanging(IReadOnlyList<StockPrice> prices) =>
+        (LatestAdx(prices) ?? 100m) < 20m;
 
     /// TryGetSignal is not meaningful for ADX alone — ADX has no direction.
     /// Use IsTrending() to filter signals from other indicators.

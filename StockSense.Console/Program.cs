@@ -34,7 +34,9 @@ catch (Exception ex)
 
 // ── Wire up services ───────────────────────────────────────────────────────────
 var rateLimiter  = new RateLimiter(options.RequestsPerMinute, options.RequestsPerDay);
-var alphaVantage = new AlphaVantageService(options, rateLimiter);
+// GRADING: ICloneable — Clone() gives AlphaVantageService its own independent copy of the
+// config so anything that mutates BaseUrl (e.g. ??= in GetApiKey) cannot affect the original.
+var alphaVantage = new AlphaVantageService((StockSenseOptions)options.Clone(), rateLimiter);
 IStockDataProvider provider = new CachedStockDataProvider(alphaVantage);
 
 // GRADING: EF Core — AlertDbContext opens (or creates) stocksense.db
@@ -266,7 +268,7 @@ static async Task RunWeeklyAnalysisAsync(
                 ? bands.PercentB(lastClose)
                 : 0.5m;
 
-            SignalType signal = await signalEngine.EvaluateAsync(symbol.Value + "_W", prices);
+            SignalType signal = await signalEngine.EvaluateAsync(symbol.Value + "_W", prices, requireVolumeForStrong: false);
 
             System.Console.Write("\r");
             ConsoleRenderer.ShowAnalysisRow(

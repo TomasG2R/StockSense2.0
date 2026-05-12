@@ -46,14 +46,16 @@ public sealed class SignalEngine
         string symbol,
         IReadOnlyList<StockPrice> prices,
         IReadOnlyList<StockPrice>? weeklyPrices = null,
+        bool requireVolumeForStrong = true,
         CancellationToken ct = default)
     {
-        SignalType combined = CombineSignals(prices);
+        SignalType combined = CombineSignals(prices, requireVolumeForStrong);
 
-        // ── Filter 1: ADX trending filter ────────────────────────────────────
-        // Suppress all signals when the stock is not trending (ADX < 20).
-        // RSI and MACD produce many false signals in sideways/ranging markets.
-        if (combined != SignalType.None && !_adx.IsTrending(prices))
+        // ── Filter 1: ADX ranging filter ─────────────────────────────────────
+        // Suppress all signals when the market is ranging (ADX < 20).
+        // RSI and MACD produce many false signals in sideways markets.
+        // Weakly-trending zone (ADX 20–24) is allowed through.
+        if (combined != SignalType.None && _adx.IsRanging(prices))
             combined = SignalType.None;
 
         // ── Filter 2: multi-timeframe weekly RSI ─────────────────────────────
@@ -93,7 +95,7 @@ public sealed class SignalEngine
     /// Runs MA, RSI, MACD and Bollinger Bands — each casts one vote.
     /// 2+ votes in the same direction = confirmed signal.
     /// Volume confirmation gates the Strong flag.
-    public SignalType CombineSignals(IReadOnlyList<StockPrice> prices)
+    public SignalType CombineSignals(IReadOnlyList<StockPrice> prices, bool requireVolumeForStrong = true)
     {
         int buyCount  = 0;
         int sellCount = 0;
@@ -126,11 +128,16 @@ public sealed class SignalEngine
             Count(bbSignal, ref buyCount, ref sellCount);
         }
 
-        // Volume confirmation: Strong only when today's volume >= 1.5× 20-day average
-        bool volumeConfirms = false;
-        long? avgVolume = PriceStatistics.AverageVolume(prices);
-        if (avgVolume is not null && avgVolume > 0)
-            volumeConfirms = prices[^1].Volume >= (long)(avgVolume * 1.5m);
+        // Volume confirmation: Strong only when today's volume >= 1.5× 20-day average.
+        // Skipped for weekly analysis (requireVolumeForStrong = false) because weekly
+        // candles rarely spike to 1.5× average even during strong directional moves.
+        bool volumeConfirms = !requireVolumeForStrong;
+        if (requireVolumeForStrong)
+        {
+            long? avgVolume = PriceStatistics.AverageVolume(prices);
+            if (avgVolume is not null && avgVolume > 0)
+                volumeConfirms = prices[^1].Volume >= (long)(avgVolume * 1.5m);
+        }
 
         // GRADING: switch with when — pattern match on (buyCount, sellCount) tuple
         return (buyCount, sellCount) switch

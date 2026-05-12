@@ -187,14 +187,8 @@ public sealed class FinnhubService : IFundamentalDataProvider
                 ? mean.GetDecimal()
                 : null;
 
-            int? count = root.TryGetProperty("lastUpdated", out _) && target.HasValue
-                ? (root.TryGetProperty("targetHigh", out _) ? (int?)null : null)
-                : null;
-            // Note: Finnhub price-target endpoint does not return analyst count directly.
-            // We leave count null and populate it from the recommendation endpoint instead.
-            count = null;
-
-            return (target, count);
+            // Finnhub price-target endpoint does not return analyst count directly.
+            return (target, null);
         }
         catch
         {

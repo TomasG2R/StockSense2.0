@@ -6,8 +6,6 @@ namespace StockSense.Core.Indicators;
 public sealed class MovingAverageIndicator : IndicatorBase
 {
     private const int DefaultPeriod = 20;
-    private static readonly MovingAverageIndicator _sma20 = new(20);
-    private static readonly MovingAverageIndicator _sma50 = new(50);
     public override string Name => $"SMA-{Period}";
     
     public override int Period { get; }
@@ -79,7 +77,7 @@ public sealed class MovingAverageIndicator : IndicatorBase
         int required = Period + LookbackBars;
         if (prices.Count < required) return false;
 
-        IReadOnlyList<decimal> sma = _sma20.Calculate(prices);
+        IReadOnlyList<decimal> sma = Calculate(prices);
 
         // Check the last LookbackBars bars for a crossover
         // sma and prices arrays are aligned from the end: sma[^1] = prices[^1]
